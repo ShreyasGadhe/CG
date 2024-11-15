@@ -1,0 +1,99 @@
+
+#include <iostream>
+#include <GL/glut.h>
+#include <cmath>
+using namespace std;
+
+int x1, y1_new, x2, y2, lineType; // Line properties
+
+// Function to draw a single pixel
+void drawPixel(int x, int y) {
+    glBegin(GL_POINTS);
+    glVertex2i(x, y);
+    glEnd();
+}
+
+// Function to draw a line with variable pattern (dotted/dashed/continuous)
+void drawLine(int x1, int y1, int x2, int y2, int patternLength, int gapLength) {
+    int dx = abs(x2 - x1);
+    int dy = abs(y2 - y1);
+    int sx = (x2 > x1) ? 1 : -1;
+    int sy = (y2 > y1) ? 1 : -1;
+    int err = dx - dy;
+
+    int stepCount = 0; // Step counter to manage patterns
+
+    while (true) {
+        // Draw based on the pattern
+        if (stepCount % (patternLength + gapLength) < patternLength) {
+            drawPixel(x1, y1);
+        }
+
+        if (x1 == x2 && y1 == y2) break; // Reached the end
+
+        int e2 = 2 * err;
+        if (e2 > -dy) {
+            err -= dy;
+            x1 += sx;
+        }
+        if (e2 < dx) {
+            err += dx;
+            y1 += sy;
+        }
+
+        stepCount++;
+    }
+}
+
+void init(void) {
+    glClearColor(0.7, 0.7, 0.7, 0.7);
+    gluOrtho2D(-100, 100, -100, 100);
+}
+
+void display(void) {
+    glClear(GL_COLOR_BUFFER_BIT);
+    glColor3f(1.0, 0.1, 0.0);
+    glPointSize(2.0f);
+
+    // Set line pattern based on type
+    switch (lineType) {
+        case 0: // Continuous
+            drawLine(x1, y1_new, x2, y2, 1, 0);
+            break;
+        case 1: // Dotted
+            drawLine(x1, y1_new, x2, y2, 1, 4);
+            break;
+        case 2: // Dashed
+            drawLine(x1, y1_new, x2, y2, 8, 4);
+            break;
+        default:
+            cout << "Invalid line type.";
+            break;
+    }
+
+    glFlush();
+}
+
+int main(int argc, char *argv[]) {
+    cout << "\n : Enter X1,Y1,X2,Y2 :\n";
+    cout << "x1: ";
+    cin >> x1;
+    cout << "Y1: ";
+    cin >> y1_new;
+    cout << "X2: ";
+    cin >> x2;
+    cout << "Y2: ";
+    cin >> y2;
+    cout << "Select line type (0: Continuous, 1: Dotted, 2: Dashed): ";
+    cin >> lineType;
+
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_RGB | GLUT_SINGLE);
+    glutInitWindowSize(500, 500);
+    glutInitWindowPosition(100, 100);
+    glutCreateWindow("Bresenham's Line Algorithm");
+    init();
+    glutDisplayFunc(display);
+    glutMainLoop();
+    return 0;
+}
